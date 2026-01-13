@@ -1,0 +1,9 @@
+
+{
+  "name": "PhishGuard AI",
+  "description": "Enterprise-grade cybersecurity platform using real-time AI to detect and predict phishing emails and malicious URLs.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
