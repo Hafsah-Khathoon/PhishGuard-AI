@@ -1,0 +1,19 @@
+# PhishGuard AI Backend Environment Configuration
+# Copy this file to .env and fill in your actual values
+
+# Google Gemini AI API Key
+# Get your API key from: https://aistudio.google.com/
+GEMINI_API_KEY=your-gemini-api-key-here
+
+# MySQL Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your-mysql-password
+DB_NAME=phishguard_ai
+
+# Instructions:
+# 1. Copy this file and rename it to .env (remove -template.txt)
+# 2. Replace 'your-gemini-api-key-here' with your actual Gemini API key
+# 3. Replace 'your-mysql-password' with your MySQL root password
+# 4. Adjust other values if your MySQL setup is different
