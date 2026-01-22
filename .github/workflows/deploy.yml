@@ -1,54 +1,87 @@
-name: Deploy to GitHub Pages
+name: Deploy PhishGuard AI
 
 on:
   push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  test-backend:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Build
-        working-directory: ./frontend
-        run: npm run build
+    
+    services:
+      mysql:
+        image: mysql:8.0
         env:
-          NODE_ENV: production
-          GITHUB_PAGES: 'true'
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: phishguard_ai_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+    
+    - name: Test Backend
+      env:
+        GEMINI_API_KEY: test_key
+        DB_HOST: localhost
+        DB_PORT: 3306
+        DB_USER: root
+        DB_PASSWORD: test_password
+        DB_NAME: phishguard_ai_test
+      run: |
+        cd backend
+        python -c "from db import DatabaseManager; db = DatabaseManager(); print('Database connection test passed')"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './frontend/dist'
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install Frontend dependencies
+      run: |
+        cd frontend
+        npm install
+    
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    - name: Test Frontend Build
+      run: |
+        cd frontend
+        ls -la dist/
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  deploy:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Production
+      run: |
+        echo "🚀 Ready for production deployment!"
+        echo "✅ Backend tests passed"
+        echo "✅ Frontend build successful"
+        echo "📦 Project ready for deployment to your preferred platform"
